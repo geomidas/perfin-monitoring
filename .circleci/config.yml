@@ -1,59 +1,24 @@
 version: 2.1
-orbs:
-  aws-cli: circleci/aws-cli@0.1.14
-
-description: |
-  Deploy a helm chart on AWS EKS
-commands:
-  setup-kube:
-    parameters:
-      cluster:
-        type: string
-      namespace:
-        default: monitoring
-        type: string
-    steps:
-      - aws-cli/configure
-      - run:
-          name: Configure Kubernetes Client
-          command: |
-            aws eks update-kubeconfig --name prod
-            kubectl create ns monitoring
-            kubectl config set-context $(kubectl config current-context) --namespace monitoring
-            # sanity check
-            kubectl get services
-  init-helmv3:
-    parameters:
-      chart:
-        type: string
-    steps:
-      - aws-cli/configure
-      - run:
-          name: Initialise Helm
-          command: |
-            helm list
-  upgrade-or-install:
-    parameters:
-      helmparams:
-        default:
-        type: string
-      chart:
-        type: string
-      language:
-        default: 'js'
-        description: Chart type for helm - defaults to "js"
-        type: enum
-        enum: ['js', 'go']
-    steps:
-      - aws-cli/configure
-      - run:
-          name: Update Cluster
-          command: |
-            pwd
-            ls -lah
-            helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-            helm upgrade --install prometheus stable/prometheus --namespace monitoring
-executors:
-  helmv3:
+  deploy:
     docker:
-      - image: sibipro/sibi-helm:0.2
+      aws-cli: circleci/aws-cli@0.1.14
+    steps:
+      - checkout
+      - run:
+          name: Install and confgure kubectl
+          command: sudo curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && sudo chmod +x /usr/local/bin/kubectl  
+      - run:
+          name: Get the kubeconfig file 
+          command: export KUBECONFIG=$HOME/.kube/kubeconfig && /home/circleci/bin/aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+      - run:
+          name: Install and configuire helm
+          command: sudo curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && sudo chmod 700 get_helm.sh && sudo ./get_helm.sh
+      - run:
+          name: Initialize helm
+          command: helm init --client-only --kubeconfig=$HOME/.kube/kubeconfig
+      - run:
+          name: Add helm repo
+          command: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+      - run:
+          name: Install prometheus
+          command: helm upgrade --install prometheus stable/prometheus --namespace monitoring
