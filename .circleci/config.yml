@@ -3,18 +3,12 @@ version: 2.1
 jobs:
   deploy:
     docker:
-      aws-cli: circleci/aws-cli@0.1.14
+      aws-cli: geomidas/docker-aws-kubectl-helm:latest
     steps:
       - checkout
       - run:
-          name: Install and confgure kubectl
-          command: sudo curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && sudo chmod +x /usr/local/bin/kubectl  
-      - run:
-          name: Get the kubeconfig file 
+          name: Get the EKS kubeconfig file 
           command: export KUBECONFIG=$HOME/.kube/kubeconfig && /home/circleci/bin/aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
-      - run:
-          name: Install and configuire helm
-          command: sudo curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && sudo chmod 700 get_helm.sh && sudo ./get_helm.sh
       - run:
           name: Initialize helm
           command: helm init --client-only --kubeconfig=$HOME/.kube/kubeconfig
@@ -22,5 +16,8 @@ jobs:
           name: Add helm repo
           command: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
       - run:
-          name: Install prometheus
+          name: Create monitoring namespace
+          command: kubectl get ns monitoring || kubectl create ns monitoring
+      - run:
+          name: Install Prometheus
           command: helm upgrade --install prometheus stable/prometheus --namespace monitoring
