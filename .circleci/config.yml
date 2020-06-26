@@ -3,9 +3,8 @@ executors:
   my-executor:
     docker:
       - image: geomidas/docker-aws-kubectl-helm:latest
-
 jobs:
-  my-job:
+  deploy:
     executor: my-executor
     steps:
       - checkout
@@ -24,3 +23,8 @@ jobs:
       - run:
           name: Install Prometheus
           command: helm upgrade --install prometheus stable/prometheus --namespace monitoring
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - deploy
