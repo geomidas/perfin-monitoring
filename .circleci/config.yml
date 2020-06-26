@@ -15,11 +15,8 @@ jobs:
           name: Add helm repo
           command: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
       - run:
-          name: Create monitoring namespace
-          command: kubectl get ns monitoring || kubectl create ns monitoring
-      - run:
           name: Install Prometheus
-          command: helm upgrade --install prometheus stable/prometheus --namespace monitoring
+          command: helm upgrade --install prometheus stable/prometheus --namespace default
 workflows:
   version: 2
   helm:
