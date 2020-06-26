@@ -1,9 +1,12 @@
 version: 2.1
+executors:
+  my-executor:
+    docker:
+      - image: geomidas/docker-aws-kubectl-helm:latest
 
 jobs:
-  deploy:
-    docker:
-      aws-cli: geomidas/docker-aws-kubectl-helm:latest
+  my-job:
+    executor: my-executor
     steps:
       - checkout
       - run:
