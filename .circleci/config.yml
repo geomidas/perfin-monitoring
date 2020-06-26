@@ -16,7 +16,7 @@ jobs:
           command: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
       - run:
           name: Install Prometheus
-          command: kubectl config view --raw >~/.kube/config && helm upgrade --install prometheus stable/prometheus --namespace default
+          command: helm upgrade --install prometheus stable/prometheus --namespace default --kubeconfig="$HOME/.kube/kubeconfig"
 workflows:
   version: 2
   helm:
