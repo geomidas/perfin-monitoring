@@ -19,7 +19,7 @@ jobs:
           command: helm upgrade --install prometheus stable/prometheus --namespace default --kubeconfig="$HOME/.kube/kubeconfig"
       - run:
           name: Install Prom Operator
-          command: helm install stable/prometheus-operator --name prometheus-operator --namespace default --kubeconfig="$HOME/.kube/kubeconfig"
+          command: helm install prometheus-operator stable/prometheus-operator --namespace default --kubeconfig="$HOME/.kube/kubeconfig"
 workflows:
   version: 2
   helm:
